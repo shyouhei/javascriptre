@@ -1,0 +1,15 @@
+.bundle
+.config
+.yardoc
+Gemfile.lock
+coverage
+doc
+rdoc
+tmp
+vendor
+*.bundle
+*.gem
+*.so
+*.o
+*.a
+mkmf.log
