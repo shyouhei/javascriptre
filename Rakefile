@@ -40,8 +40,9 @@ else
 end
 
 begin
-  Bundler.setup :development
+  Bundler.setup :default, :development
   require 'rake/testtask'
+  require 'bundler/gem_tasks'
 
   task 'default' => %w'test'
   task 'spec'    => %w'test'
@@ -58,6 +59,7 @@ begin
   end
 
 rescue LoadError, NameError
+  p $!
   # OK, they can be absent on non-development mode.
 end
 
