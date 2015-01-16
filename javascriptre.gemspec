@@ -23,31 +23,27 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "javascriptre"
-  spec.version       = version
+  spec.version       = 1.0
   spec.authors       = ["Urabe, Shyouhei"]
   spec.email         = ["shyouhei@ruby-lang.org"]
-  spec.summary       = raise 'write here'
-  spec.description   = raise 'write here'
-  spec.homepage      = raise 'write here'
+  spec.summary       = 'ECMAScript RegExp parser'
+  spec.description   = <<-end.gsub(/[\s]+/m, ' ').strip
+                       Believe  it  or  not  this is  a  ECMA-262  edition  5.1
+                       -compatible  Regular  Expression parser  and  evaluator,
+                       written in Ruby.
+                       end
+  spec.homepage      = "https://github.com/shyouhei/javascriptre"
   spec.license       = "MIT"
 
-  spec.files         = `git ls-files -z`.split("\x0")
+  spec.files         = `git ls-files -z`.split("\x0") + %w'lib/javascriptre.rb'
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
-  spec.require_paths = ["lib"]
+  spec.require_paths = %w"lib"
 
-  spec.required_ruby_version                            = '~> 2.1'
-  spec.add_development_dependency 'bundler',              '~> 1.5'
-  spec.add_development_dependency 'rake',                 '~> 10.3'
-  spec.add_development_dependency 'rdoc',                 '~> 4.0'
-  spec.add_development_dependency 'yard',                 '~> 0.8'
-  if :use_rspec then
-    spec.add_development_dependency 'rspec',              '~> 3.0'
-    spec.add_development_dependency 'rspec-its',          '~> 1.0'
-    spec.add_development_dependency 'rspec-power_assert', '>= 0'
-  else
-    spec.add_development_dependency 'test-unit',          '~> 3.0'
-  end
-  spec.add_development_dependency 'simplecov',            '>= 0'
-  spec.add_development_dependency 'pry',                  '~> 0.10'
+  spec.required_ruby_version                 = '>= 1.8'
+  spec.add_development_dependency 'bundler',   '~> 1.5'
+  spec.add_development_dependency 'rake',      '~> 10.3'
+  spec.add_development_dependency 'racc',      '~> 1.4.11'
+  spec.add_development_dependency 'test-unit', '~> 3.0'
+  spec.add_development_dependency 'pry',       '~> 0.10'
 end

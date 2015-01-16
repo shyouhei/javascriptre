@@ -41,25 +41,29 @@ end
 
 begin
   Bundler.setup :development
-  require 'yard'
-  require 'bundler/gem_tasks'
   require 'rake/testtask'
 
-  YARD::Rake::YardocTask.new
-
-  task default: :test
-  task spec: :test
+  task 'default' => %w'test'
+  task 'spec'    => %w'test'
   desc "run tests"
   Rake::TestTask.new do |t|
     t.test_files = FileList['test/**/*.rb']
   end
+
+  task 'yard'  => %w'lib/javascriptre.rb'
+  task 'rdoc'  => %w'lib/javascriptre.rb'
+  task 'build' => %w'lib/javascriptre.rb'
+  file 'lib/javascriptre.rb' => %w'lib/javascriptre.ry' do |t|
+    sh "bundle exec racc --output-file=#{t.name} #{t.prerequisites.first}"
+  end
+
 rescue LoadError, NameError
   # OK, they can be absent on non-development mode.
 end
 
 desc "a la rails console"
-task :console do
-  require_relative 'lib' # fix it
+task :console => %w'lib/javascriptre.rb' do
+  require_relative 'lib/javascriptre'
   require 'irb'
   require 'irb/completion'
   ARGV.clear
@@ -68,8 +72,8 @@ end
 task :c => :console
 
 desc "pry console"
-task :pry do
-  require_relative 'lib' # fix it
+task :pry => %w'lib/javascriptre.rb' do
+  require_relative 'lib/javascriptre'
   require 'pry'
   ARGV.clear
   Pry.start

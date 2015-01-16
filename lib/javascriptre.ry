@@ -1,0 +1,166 @@
+#! /your/favourite/path/to/racc
+# -*- mode: ruby; coding: utf-8; indent-tabs-mode: nil; ruby-indent-level 2 -*-
+
+# Copyright (c) 2015 Urabe, Shyouhei
+#
+# Permission is hereby granted, free of  charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction,  including without limitation the rights
+# to use,  copy, modify,  merge, publish,  distribute, sublicense,  and/or sell
+# copies  of the  Software,  and to  permit  persons to  whom  the Software  is
+# furnished to do so, subject to the following conditions:
+#
+#         The above copyright notice and this permission notice shall be
+#         included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE  IS PROVIDED "AS IS",  WITHOUT WARRANTY OF ANY  KIND, EXPRESS OR
+# IMPLIED,  INCLUDING BUT  NOT LIMITED  TO THE  WARRANTIES OF  MERCHANTABILITY,
+# FITNESS FOR A  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO  EVENT SHALL THE
+# AUTHORS  OR COPYRIGHT  HOLDERS  BE LIABLE  FOR ANY  CLAIM,  DAMAGES OR  OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Believe it or not this is a ECMA-262 edition 5.1 -compatible Regular Expression
+# parser and evaluator, written in Ruby.
+#
+# Of course it translates JS RegExp into Ruby's Regexp.
+#
+# @see http://www.ecma-international.org/ecma-262/5.1/#sec-15.10.1
+class Javascriptre
+
+  options no_result_var
+  rule
+
+  Pattern                   : Disjunction                                         { val }
+  Disjunction               : Alternative                                         { val }
+                            | Alternative '|' Disjunction                         { val }
+  Alternative               : # [empty]                                           { val }
+                            | Alternative Term                                    { val }
+  Term                      : Assertion                                           { val }
+                            | Atom                                                { val }
+                            | Atom Quantifier                                     { val }
+  Assertion                 : '^'                                               { '\\A' }
+                            | '$'                                               { '\\z' }
+                            | '\\' 'b'                                            { val }
+                            | '\\' 'B'                                            { val }
+                            | '(' '?' '=' Disjunction ')'                         { val }
+                            | '(' '?' '!' Disjunction ')'                         { val }
+  Quantifier                : QuantifierPrefix                                    { val }
+                            | QuantifierPrefix '?'                                { val }
+  QuantifierPrefix          : '*'                                                 { val }
+                            | '+'                                                 { val }
+                            | '?'                                                 { val }
+                            | '{' DecimalDigits '}'                               { val }
+                            | '{' DecimalDigits ',' '}'                           { val }
+                            | '{' DecimalDigits ',' DecimalDigits '}'             { val }
+  Atom                      : PatternCharacter                                    { val }
+                            | '.'                                                 { val }
+                            | '\\' AtomEscape                                     { val }
+                            | CharacterClass                                      { val }
+                            | '(' Disjunction ')'                                 { val }
+                            | '(' '?' ':' Disjunction ')'                         { val }
+  PatternCharacter          : others                                              { val }
+                            | ControlLetter                                       { val }
+                            | DecimalDigit                                        { val }
+                            | '!' | ',' | '-'  | ':' | '='                        { val }
+  AtomEscape                : DecimalEscape                                       { val }
+                            | CharacterEscape                                     { val }
+                            | CharacterClassEscape                                { val }
+  CharacterEscape           : ControlEscape                                       { val }
+                            | 'c' ControlLetter                                   { val }
+                            | HexEscapeSequence                                   { val }
+                            | UnicodeEscapeSequence                               { val }
+                            | IdentityEscape                                      { val }
+  ControlEscape             : 'f' | 'n' | 't' | 'r' | 'v'                         { val }
+  ControlLetter             : 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g'             { val }
+                            | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'             { val }
+                            | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u'             { val }
+                            | 'v' | 'w' | 'x' | 'y' | 'z'                         { val }
+                            | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'             { val }
+                            | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N'             { val }
+                            | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U'             { val }
+                            | 'V' | 'W' | 'X' | 'Y' | 'Z'                         { val }
+  HexEscapeSequence         : 'x' HexDigit HexDigit                               { val }
+  UnicodeEscapeSequence     : 'u' HexDigit HexDigit HexDigit HexDigit             { val }
+  IdentityEscape            : others                                              { val }
+                            | '!' | ',' | '-'  | ':' | '='                        { val }
+                            | '^' | '$' | '\\' | '.' | '*' | '+' | '?'            { val }
+                            | '(' | ')' | '[' | ']' | '{' | '}' | '|'             { val }
+  DecimalEscape             : '0'                                                 { val }
+                            | nonzero DecimalDigits                               { val }
+  nonzero                   : '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' { val }
+  CharacterClassEscape      : 'd' | 'D' | 's' | 'S' | 'w' | 'W'                   { val }
+  CharacterClass            : '[' '^' ClassRanges ']'                             { val }
+                            | '[' ClassRanges ']'                                 { val }
+  ClassRanges               : # [empty]                                           { val }
+                            | NonemptyClassRanges                                 { val }
+  NonemptyClassRanges       : ClassAtom                                           { val }
+                            | ClassAtom NonemptyClassRangesNoDash                 { val }
+                            | ClassAtom '-' ClassAtom ClassRanges                 { val }
+  NonemptyClassRangesNoDash : ClassAtom                                           { val }
+                            | ClassAtomNoDash NonemptyClassRangesNoDash           { val }
+                            | ClassAtomNoDash '-' ClassAtom ClassRanges           { val }
+  ClassAtom                 : '-'                                                 { val }
+                            | ClassAtomNoDash                                     { val }
+  ClassAtomNoDash           : others                                              { val }
+                            | ControlLetter                                       { val }
+                            | DecimalDigit                                        { val }
+                            | '!' | ',' | ':' | '='                               { val }
+                            | '^' | '$' | '.' | '*' | '+' | '?'                   { val }
+                            | '(' | ')' | '[' | '{' | '}' | '|'                   { val }
+                            | '\\' ClassEscape                                    { val }
+  ClassEscape               : DecimalEscape                                       { val }
+                            | 'b'                                                 { val }
+                            | CharacterEscape                                     { val }
+                            | CharacterClassEscape                                { val }
+  DecimalDigits             : DecimalDigit                                        { val }
+                            | DecimalDigits DecimalDigit                          { val }
+  HexDigit                  : DecimalDigit                                        { val }
+                            | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'                   { val }
+                            | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'                   { val }
+  DecimalDigit              : '0' | nonzero                                       { val }
+
+---- header
+  require 'strscan'
+
+---- inner
+
+  class << self
+    private
+    alias bare_new new
+
+    public
+    # Compiles the given JS RegExp.
+    #
+    # @param str [String] regular expression in ECMA-262 fashion.
+    def new str
+      obj = bare_new str
+      return obj.rexp
+    rescue Racc::ParseError
+      raise ArgumentError, "malformed JS Re: #{str.inspect} => #$!"
+    end
+  end
+
+  def initialize str
+    @buf     = StringScanner.new str
+    @pattern = do_parse
+    @rexp    = Regexp.new @pattern.join
+  end
+
+  attr_reader :rexp # @return [Regexp] the expression in ruby.
+
+  private
+
+  def next_token
+    case
+    when @buf.eos?
+      return false, nil
+    when c = @buf.scan(/[!$()*+,\-.0123456789:=?ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]^abcdefghijklmnopqrstuvwxyz{|}]/) then
+      return c, c
+    when c = @buf.scan(/./) then
+      return :others, c
+    else
+      raise @buf.inspect
+    end
+  end

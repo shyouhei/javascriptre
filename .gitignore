@@ -13,3 +13,4 @@ vendor
 *.o
 *.a
 mkmf.log
+javascriptre.rb
